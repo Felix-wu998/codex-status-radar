@@ -11,12 +11,21 @@ let package = Package(
         .library(
             name: "CodexStatusRadarCore",
             targets: ["CodexStatusRadarCore"]
+        ),
+        .executable(
+            name: "CodexStatusRadarApp",
+            targets: ["CodexStatusRadarApp"]
         )
     ],
     targets: [
         .target(
             name: "CodexStatusRadarCore",
             path: "packages/core/Sources/CodexStatusRadarCore"
+        ),
+        .executableTarget(
+            name: "CodexStatusRadarApp",
+            dependencies: ["CodexStatusRadarCore"],
+            path: "apps/macos/Sources/CodexStatusRadarApp"
         ),
         .testTarget(
             name: "CodexStatusRadarCoreTests",
