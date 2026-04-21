@@ -31,6 +31,11 @@ let package = Package(
             name: "CodexStatusRadarCoreTests",
             dependencies: ["CodexStatusRadarCore"],
             path: "packages/core/Tests/CodexStatusRadarCoreTests"
+        ),
+        .testTarget(
+            name: "CodexStatusRadarAppTests",
+            dependencies: ["CodexStatusRadarApp"],
+            path: "apps/macos/Tests/CodexStatusRadarAppTests"
         )
     ]
 )
