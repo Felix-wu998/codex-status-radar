@@ -1,78 +1,83 @@
 # Codex Status Radar
 
-Codex Status Radar is a local-first macOS utility for heavy Codex users. Its core product surface is a Mac notch interaction and status light that shows when Codex is running, waiting for input, waiting for approval, or done.
+Codex Status Radar 是一个本地优先的 macOS 工具，面向高频使用 Codex 的用户。它的核心产品形态是 Mac 刘海交互和状态灯，用来提示 Codex 当前是运行中、等待输入、等待审批、已完成还是异常。
 
-The first product slice focuses on precise `waiting-approval` detection through Codex app-server and a notch approval interaction that follows Codex's native decision model.
+第一阶段聚焦两件事：
 
-## Current Status
+- 通过 Codex app-server 精准检测 `waiting-approval`。
+- 在刘海区域展示符合 Codex 原生 decision model 的审批交互。
 
-This repository is in technical spike stage, with the first shared Swift core
-package now in place.
+## 当前状态
 
-Verified locally:
+本仓库处于技术验证和 MVP 初始实现阶段，已经建立 Swift core package。
 
-- Codex app-server can emit `thread/status/changed` with `activeFlags: ["waitingOnApproval"]`.
-- Codex app-server can emit `item/commandExecution/requestApproval`.
-- Approval requests include `availableDecisions`.
-- A local mock notch approval card can render three approval choices.
-- `CodexStatusRadarCore` can decode observed approval decisions and map them to
-  privacy-safe notch actions.
+已本地验证：
 
-## Repository Layout
+- Codex app-server 会发出 `thread/status/changed`。
+- `activeFlags` 中可以出现 `waitingOnApproval`。
+- Codex app-server 会发出 `item/commandExecution/requestApproval`。
+- approval request 中包含 `availableDecisions`。
+- 本地 mock 刘海审批卡片可以展示三个审批选项。
+- `CodexStatusRadarCore` 可以解码已观测到的 approval decision，并映射成隐私安全的刘海 action。
+
+## 仓库结构
 
 ```text
 apps/
-  macos/                 Production macOS app code will live here.
+  macos/                 生产 macOS 应用代码。
 packages/
-  core/                  Shared protocol, parsing, and view-model logic.
+  core/                  共享协议、解析、状态和 view model 逻辑。
 prototypes/
-  app-server-approval/   Disposable but reproducible approval-flow spike.
+  app-server-approval/   可复现的 approval-flow 技术验证。
 docs/
-  architecture/          Technical architecture and directory decisions.
-  decisions/             ADR-style product and engineering decisions.
-  product/               PRD, scope, privacy, and product requirements.
-  research/              Technical and market research notes.
-scripts/                 Repeatable local development scripts.
-assets/                  Product images, screenshots, and design assets.
+  architecture/          技术架构和目录决策。
+  decisions/             ADR 风格的稳定决策记录。
+  product/               PRD、范围、隐私和产品要求。
+  research/              技术验证、仓库研究和市场笔记。
+  superpowers/plans/     可按任务执行的实施计划。
+scripts/                 可重复执行的本地开发脚本。
+assets/                  产品图片、截图和设计资产。
 ```
 
-## Privacy Boundary
+## 隐私边界
 
-Core functionality must run locally. The product must not upload source code, conversation content, command bodies, diffs, complete project paths, filenames, tokens, secrets, or authentication material.
+核心功能必须本地运行。本产品不得上传源码、对话内容、命令正文、diff、完整项目路径、文件名、token、secret 或认证材料。
 
-Developer-side telemetry is allowed only as anonymous product-level events, must be documented, and must be user-configurable.
+开发者侧远程统计只允许匿名产品级事件，必须有文档说明，必须可由用户配置，且默认不应成为核心功能路径。
 
-## Development
+## 开发入口
 
-The current reproducible spike is in `prototypes/app-server-approval`.
-
-Read before continuing implementation:
+继续实现前先读：
 
 - `docs/architecture/technical-architecture.md`
 - `docs/superpowers/plans/2026-04-21-macos-mvp.md`
 
-Run core tests:
+运行 core 测试：
 
 ```bash
 swift test --disable-sandbox
 ```
 
-Open the local mock:
+打开本地 mock：
 
 ```bash
 open prototypes/app-server-approval/notch-approval-mock.html
 ```
 
-Run the app-server approval spike after starting Codex app-server:
+启动 Codex app-server 后运行 approval spike：
 
 ```bash
 CODEX_APP_SERVER_PORT=8794 node prototypes/app-server-approval/app-server-approval-spike.mjs
 ```
 
-See `docs/research/app-server-approval-spike.md` for the full setup.
+完整验证说明见：
 
-## License
+- `docs/research/app-server-approval-spike.md`
 
-No license has been selected yet. Before the first public release, and whenever
-this project borrows from or forks another project, revisit
-`docs/decisions/0002-license-checkpoints.md`.
+## 许可证
+
+当前尚未选择最终许可证。首次公开发布前，以及任何借鉴、复制、移植或 fork 第三方项目代码 / UI 文案 / 资产 / 结构前，必须回到：
+
+- `docs/decisions/0002-license-checkpoints.md`
+
+处理许可证和署名边界。

@@ -1,138 +1,108 @@
-# Technical Architecture
+# 技术架构
 
-## Product Boundary
+## 产品边界
 
-Codex Status Radar is a local-first macOS companion for Codex. The app does not
-replace Codex. It observes Codex app-server state, renders a notch status light,
-and surfaces approval requests with the same decision choices Codex provides.
+Codex Status Radar 是一个本地优先的 macOS Codex 伴随工具。它不替代 Codex，也不接管 Codex 的主流程。它观察本地 Codex app-server 状态，在刘海区域展示状态灯，并在 Codex 等待审批时弹出审批交互。
 
-The primary product surface is the notch. The menu bar icon exists only to show
-that the app is running and to expose settings or diagnostics.
+产品主体是刘海交互和状态灯。菜单栏图标只表示应用已打开，并提供设置、诊断和退出入口。
 
-## Architectural Goals
+## 架构目标
 
-- Detect `waitingOnApproval` precisely from Codex app-server.
-- Preserve Codex-native approval decisions from `availableDecisions`.
-- Keep source code, command bodies, diffs, filenames, complete paths, tokens,
-  secrets, and conversation content local.
-- Keep the first implementation testable without building the full UI.
-- Isolate protocol parsing from macOS presentation code.
-- Allow optional anonymous product telemetry later without making telemetry part
-  of the core product path.
+- 精准识别 Codex app-server 的 `waitingOnApproval`。
+- 保留 Codex 在 `availableDecisions` 中返回的原生审批决策。
+- 默认不展示敏感命令正文。
+- 不上传源码、对话、命令、diff、完整路径、文件名、token 或 secret。
+- 把协议解析、状态归约、隐私处理放在 core 层，把 macOS 展示放在 app 层。
+- 后续可以接入匿名产品遥测，但遥测不能成为核心功能路径的一部分。
 
-## Component Map
+## 组件划分
 
 ```text
 Codex app-server
   |
-  | local WebSocket
+  | 本地 WebSocket
   v
 apps/macos
-  CodexAppServerClient
-  ApprovalRequestController
-  NotchStatusController
-  MenuBarController
-  SettingsController
+  CodexAppServerClient        连接 app-server
+  ApprovalRequestController   管理审批请求
+  NotchStatusController       管理刘海状态灯
+  MenuBarController           管理菜单栏图标
+  SettingsController          管理设置
   |
   v
 packages/core
-  AppServer protocol models
-  Approval decision mapper
-  Thread status reducer
-  Privacy redaction rules
-  Summary view models
-  |
-  v
-Local UI only
+  app-server 协议模型
+  审批决策映射
+  线程状态归约
+  隐私脱敏规则
+  总结视图模型
 ```
 
-## Repository Responsibilities
+## `packages/core` 职责
 
-### `packages/core`
+`packages/core` 是纯 Swift 逻辑层，不依赖 AppKit。
 
-Pure Swift logic with no AppKit dependency.
+职责：
 
-Responsibilities:
+- 解码 app-server 事件。
+- 把 app-server 事件转成本地状态。
+- 把 `availableDecisions` 映射成刘海按钮模型。
+- 在内容进入 UI 或遥测前做隐私脱敏。
+- 提供稳定的单元测试。
 
-- Decode app-server protocol messages that the app needs.
-- Convert app-server events into stable local state.
-- Map approval decisions into notch-safe UI actions.
-- Redact sensitive fields before they can reach UI summaries or telemetry.
-- Provide deterministic unit tests for protocol behavior.
+当前已有：
 
-Current files:
+- `ApprovalDecision.swift`：解码 Codex 审批决策。
+- `ApprovalRequestViewModel.swift`：把审批决策映射成 UI action。
+- `AppServerEnvelope.swift`：解码 app-server 事件外壳。
 
-- `ApprovalDecision.swift` decodes command approval decision payloads.
-- `ApprovalRequestViewModel.swift` maps decisions to user-facing actions.
-- `ApprovalDecisionMapperTests.swift` covers observed approval payloads.
+下一步计划：
 
-Planned files:
+- `ThreadStatus.swift`：定义本地状态。
+- `CodexEventReducer.swift`：把事件归约成状态。
+- `PrivacyRedactor.swift`：负责项目名、路径、遥测字段脱敏。
 
-- `AppServerEnvelope.swift` for common app-server event envelopes.
-- `ThreadStatus.swift` for `activeFlags`, running state, and completion state.
-- `CodexEventReducer.swift` for ordered event-to-state reduction.
-- `PrivacyRedactor.swift` for local redaction before display or telemetry.
+## `apps/macos` 职责
 
-### `apps/macos`
+`apps/macos` 是生产 macOS 应用。
 
-Production macOS app target.
+职责：
 
-Responsibilities:
+- 管理应用生命周期。
+- 显示菜单栏图标。
+- 连接本地 Codex app-server。
+- 展示刘海状态灯。
+- 展示刘海审批弹窗。
+- 把用户选择的原始 decision 发回 Codex app-server。
+- 提供隐私、遥测、连接设置。
 
-- Manage app lifecycle and menu bar presence.
-- Connect to a local Codex app-server WebSocket.
-- Render the notch status light and approval popover.
-- Send selected approval decisions back to Codex app-server.
-- Expose privacy, telemetry, and connection settings.
+app 层必须依赖 `CodexStatusRadarCore`，不要重复写协议解析逻辑。
 
-The app should depend on `CodexStatusRadarCore`, not duplicate protocol logic.
+## 数据流
 
-### `prototypes`
+1. macOS 应用启动，菜单栏图标出现。
+2. 应用连接配置好的本地 Codex app-server WebSocket。
+3. `CodexAppServerClient` 接收 JSON 事件。
+4. core 层解码 app-server event。
+5. `CodexEventReducer` 把事件归约成本地项目状态。
+6. `NotchStatusController` 根据状态显示状态灯：
+   - 未连接。
+   - 空闲。
+   - 工作中。
+   - 等待用户输入。
+   - 等待审批。
+   - 已完成。
+   - 错误。
+7. 审批请求到达时，core 层生成 `ApprovalRequestViewModel`。
+8. 刘海审批 UI 按 `availableDecisions` 顺序展示按钮。
+9. 用户点击后，app 层把原始 decision payload 原样发回 app-server。
+10. app-server resolve 后，UI 回到状态灯模式。
 
-Disposable but reproducible experiments.
+## 审批交互原则
 
-The existing app-server approval spike remains the source of truth for the first
-observed approval flow. Prototype code should not be imported into production
-without being rewritten behind core tests.
+审批 UI 不能伪造固定选项，必须渲染 Codex 返回的 `availableDecisions`。
 
-### `docs`
-
-GitHub-readable project knowledge:
-
-- Product requirements.
-- Architecture.
-- Technical research.
-- Decision records.
-- Implementation plans.
-
-Obsidian remains the broader work journal.
-
-## Runtime Data Flow
-
-1. The macOS app starts and shows the menu bar icon.
-2. The app connects to a configured local Codex app-server endpoint.
-3. `CodexAppServerClient` receives WebSocket JSON messages.
-4. Core protocol models decode only the event shapes the app understands.
-5. `CodexEventReducer` updates local thread/project state.
-6. `NotchStatusController` maps state into a small status light:
-   - idle
-   - working
-   - waiting for user input
-   - waiting for approval
-   - completed
-   - error/disconnected
-7. When an approval request arrives, `ApprovalRequestController` creates an
-   `ApprovalRequestViewModel`.
-8. The notch approval UI renders the ordered actions from `availableDecisions`.
-9. The selected decision is sent back to app-server unchanged.
-10. The UI returns to status-light mode after app-server resolves the request.
-
-## Approval Interaction
-
-The approval UI must not hard-code a fake approval model. It renders the ordered
-decisions returned by Codex.
-
-Observed decision example:
+真实观测过的 decision：
 
 ```json
 [
@@ -149,75 +119,65 @@ Observed decision example:
 ]
 ```
 
-Current mapping:
+当前映射：
 
-| Protocol decision | Notch action | Meaning |
+| 协议 decision | 刘海按钮 | 含义 |
 | --- | --- | --- |
-| `accept` | `批准一次` | Approve only this request. |
-| `acceptForSession` | `本次会话批准` | Approve for the current session. |
-| `acceptWithExecpolicyAmendment` | `本次会话批准` + `允许类似命令` | Approve and allow a proposed exec-policy amendment. |
-| `applyNetworkPolicyAmendment` | `本次会话批准` + `允许网络规则` | Approve and apply a proposed network rule. |
-| `decline` | `拒绝` | Decline the request. |
-| `cancel` | `拒绝` + `取消本次请求` | Cancel the current request. |
+| `accept` | `批准一次` | 只批准本次请求。 |
+| `acceptForSession` | `本次会话批准` | 当前会话内批准。 |
+| `acceptWithExecpolicyAmendment` | `本次会话批准` + `允许类似命令` | 批准并允许 proposed exec-policy amendment。 |
+| `applyNetworkPolicyAmendment` | `本次会话批准` + `允许网络规则` | 批准并应用 proposed network rule。 |
+| `decline` | `拒绝` | 拒绝请求。 |
+| `cancel` | `拒绝` + `取消本次请求` | 取消当前请求。 |
 
-The exact decision payload must be retained and sent back unchanged.
+关键要求：**原始 decision payload 必须保留，回传时不能改写。**
 
-## Privacy Architecture
+## 隐私架构
 
-Privacy is enforced as a design boundary, not only a settings copy line.
+默认不上传：
 
-Never upload:
+- 源代码。
+- 对话文本。
+- 命令正文。
+- diff。
+- 完整项目路径。
+- 文件名。
+- token、secret、auth 文件或环境变量。
 
-- Source code.
-- Conversation text.
-- Command bodies.
-- Diffs.
-- Complete project paths.
-- Filenames.
-- Tokens, secrets, auth files, or environment variables.
+本地 UI 默认：
 
-Local UI default:
+- 展示项目 / 仓库名，不展示完整路径。
+- 默认隐藏命令详情。
+- 用户可以在本地展开查看，但不上传。
+- 总结只列项目 / 仓库，不列具体文件路径。
 
-- Show project/repository name, not full path.
-- Hide command details by default.
-- Allow user expansion for local inspection only.
-- Summaries list project/repository names, not changed file paths.
+遥测边界：
 
-Telemetry boundary:
+- 默认关闭。
+- 只能是匿名产品级事件。
+- 可以记录 app 版本、macOS 大版本、功能开关、粗粒度耗时桶、匿名事件名。
+- 不能记录源码、prompt、命令、文件名、完整路径、repo remote、token 或原始 app-server payload。
 
-- Telemetry is optional and product-level only.
-- It can include app version, macOS major version, feature toggles, coarse
-  latency buckets, and anonymous event names.
-- It cannot include code, prompts, commands, filenames, full paths, repo remote
-  URLs, tokens, or raw app-server payloads.
-- Telemetry must be documented and controllable from settings before release.
+## app-server 连接策略
 
-## App-Server Connection Strategy
+MVP 阶段只做 attach 模式：连接已经运行的本地 Codex app-server。
 
-MVP strategy: attach to an existing local app-server endpoint first.
+原因：
 
-Reasons:
+- 不改动用户 Codex 运行方式。
+- 更容易复用已验证的 spike。
+- 避免一开始就引入进程管理复杂度。
 
-- It keeps process ownership simple.
-- It allows testing against the known working spike setup.
-- It avoids silently changing the user's Codex runtime behavior.
+后续再考虑 managed startup：由应用启动 `codex app-server`。这必须等 attach 模式和审批流稳定后再做。
 
-Later strategy: offer managed startup.
-
-Managed startup can launch `codex app-server` from a configured Codex binary, but
-only after the attach-only client and approval flow are stable.
-
-## State Model
-
-Core state should be small and UI-oriented:
+## 状态模型草案
 
 ```swift
 struct ProjectStatus {
     let projectName: String
-    let threadId: String
+    let threadId: String?
     let phase: CodexPhase
     let pendingApproval: ApprovalRequestViewModel?
-    let lastUpdatedAt: Date
 }
 
 enum CodexPhase {
@@ -231,53 +191,40 @@ enum CodexPhase {
 }
 ```
 
-The reducer owns state transitions. UI code reads state and renders it; UI code
-does not parse raw app-server payloads.
+状态归约由 core 层负责。UI 只读取状态并渲染，不直接解析原始 app-server payload。
 
-## Testing Strategy
+## 测试策略
 
-### Core
-
-Core tests run with SwiftPM:
+core 层：
 
 ```bash
 swift test --disable-sandbox
 ```
 
-Core tests must cover:
+必须覆盖：
 
-- Protocol decoding for observed app-server payloads.
-- Approval decision preservation.
-- State reducer behavior.
-- Privacy redaction behavior.
+- 真实 app-server payload 解码。
+- 审批 decision 原样保留。
+- 事件到状态的归约。
+- 隐私脱敏规则。
 
-### macOS App
-
-macOS app tests should cover:
-
-- View-model rendering decisions.
-- App-server client reconnection behavior with local fixture messages.
-- Approval response routing.
-
-Manual verification remains required for notch placement and macOS permission
-behavior until stable UI automation exists.
-
-### Prototype
-
-Prototype syntax check:
+prototype 层：
 
 ```bash
 node --check prototypes/app-server-approval/app-server-approval-spike.mjs
 ```
 
-The prototype should be rerun after app-server protocol changes.
+macOS app 层：
 
-## Release Gates
+- 构建验证：`swift build --disable-sandbox`。
+- 手动验证：菜单栏图标、刘海窗口位置、审批弹窗、点击回传。
+- 后续稳定后再补 UI 自动化。
 
-Before first public binary:
+## 发布前门槛
 
-- `swift test --disable-sandbox` passes.
-- Approval flow is verified against real Codex app-server.
-- Privacy settings and telemetry settings are documented.
-- License checkpoint is resolved.
-- README includes install, run, privacy, and troubleshooting sections.
+- `swift test --disable-sandbox` 通过。
+- `swift build --disable-sandbox` 通过。
+- 真实 Codex app-server 审批流验证通过。
+- 隐私和遥测设置有明确文档。
+- 许可证检查点已处理。
+- README 包含安装、运行、隐私和故障排查。

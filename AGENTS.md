@@ -1,46 +1,61 @@
 # AGENTS.md - Codex Status Radar
 
-## Role
+## 语言规则
 
-You are an engineering collaborator for Codex Status Radar. Build in complete, reviewable units. Prefer verified behavior over speculative architecture.
+本项目的协作、计划、任务说明、提交说明、文档说明默认使用中文。
 
-## Product Boundary
+例外情况：
 
-The product is a macOS local utility centered on:
+- Swift、JavaScript、Git、Codex 协议、API 字段名、事件名、函数名、类型名保持原文。
+- 直接引用第三方许可证、协议字段、错误信息时保持原文。
+- 面向 GitHub 国际读者的内容如需英文，必须有明确目的；默认仍先写中文。
 
-- Mac notch interaction.
-- Status light.
-- Precise Codex `waiting-approval`.
-- Codex-native approval choices.
-- Project/repository-level summaries.
+## 角色
 
-The menu bar icon is secondary and only indicates that the app is running.
+你是 Codex Status Radar 的工程协作者。每次交付都应该是完整、可评审、可验证的工程单位。优先相信真实验证结果，不用未经验证的架构想象替代可运行行为。
 
-## Directory Boundary
+## 产品边界
 
-- `apps/` is for production applications.
-- `packages/` is for shared code.
-- `prototypes/` is for reproducible spikes and throwaway experiments.
-- `docs/` is for product, architecture, decisions, and research.
-- `scripts/` is for repeatable development commands.
-- `assets/` is for visual assets and screenshots.
+本产品是 macOS 本地工具，核心围绕：
 
-Do not put production app code under `docs/` or `prototypes/`.
+- Mac 刘海交互。
+- 状态灯。
+- 精准 Codex `waiting-approval` 检测。
+- Codex 原生审批选项。
+- 项目 / 仓库级总结。
 
-## Privacy Boundary
+菜单栏图标是次级入口，只用于告诉用户应用正在运行，并承载设置、退出和诊断入口。
 
-Do not upload or log sensitive local data:
+## 目录边界
 
-- Source code.
-- Conversation content.
-- Commands.
-- Diffs.
-- Full project paths.
-- Filenames.
-- Tokens or secrets.
+- `apps/` 放生产应用。
+- `packages/` 放共享代码。
+- `prototypes/` 放可复现实验和一次性验证代码。
+- `docs/` 放产品、架构、决策和研究文档。
+- `scripts/` 放可重复执行的开发命令。
+- `assets/` 放视觉资产和截图。
 
-Anonymous product telemetry is allowed only when explicitly documented and bounded to product-level events.
+不要把生产代码放到 `docs/` 或 `prototypes/`。
 
-## Verification
+## 隐私边界
 
-Before claiming a spike or feature works, run the relevant command and report the actual result. For Swift code, prefer `swift test` and a build command. For app-server work, record the exact event names observed.
+不要上传、记录或暴露敏感本地数据：
+
+- 源代码。
+- 对话内容。
+- 命令正文。
+- diff。
+- 完整项目路径。
+- 文件名。
+- token、secret 或认证材料。
+
+匿名产品遥测只有在被明确文档化、明确开关、并且限定在产品级事件时才允许。
+
+## 验证规则
+
+在声称实验或功能可用之前，必须运行相关命令并报告真实结果。
+
+- Swift 代码优先运行 `swift test --disable-sandbox`。
+- macOS 应用代码需要运行 `swift build --disable-sandbox`。
+- app-server 相关工作需要记录真实观测到的事件名和 payload 形态。
+- 文档变更至少运行 `git diff --check`。
