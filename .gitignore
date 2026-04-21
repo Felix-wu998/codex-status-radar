@@ -1,0 +1,27 @@
+.DS_Store
+
+# Xcode / Swift
+.build/
+DerivedData/
+*.xcuserdata/
+*.xcuserstate
+*.xcodeproj/project.xcworkspace/xcuserdata/
+*.xcodeproj/xcuserdata/
+*.xcworkspace/xcuserdata/
+
+# Local Codex/app-server scratch data
+.codex-home/
+tmp/
+*.log
+
+# Secrets
+.env
+.env.*
+auth.json
+config.local.toml
+
+# Node prototypes
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
