@@ -55,9 +55,6 @@ packages/core
 - `ApprovalDecision.swift`：解码 Codex 审批决策。
 - `ApprovalRequestViewModel.swift`：把审批决策映射成 UI action。
 - `AppServerEnvelope.swift`：解码 app-server 事件外壳。
-
-下一步计划：
-
 - `ThreadStatus.swift`：定义本地状态。
 - `CodexEventReducer.swift`：把事件归约成状态。
 - `PrivacyRedactor.swift`：负责项目名、路径、遥测字段脱敏。
@@ -217,7 +214,8 @@ node --check prototypes/app-server-approval/app-server-approval-spike.mjs
 macOS app 层：
 
 - 构建验证：`swift build --disable-sandbox`。
-- 手动验证：菜单栏图标、刘海窗口位置、审批弹窗、点击回传。
+- 本地刘海审批 demo：`scripts/run-macos-app.sh --demo-approval`。
+- 手动验证：菜单栏图标、刘海窗口位置、审批弹窗、点击后的状态切换。
 - 后续稳定后再补 UI 自动化。
 
 ## 发布前门槛

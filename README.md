@@ -19,6 +19,7 @@ Codex Status Radar 是一个本地优先的 macOS 工具，面向高频使用 Co
 - approval request 中包含 `availableDecisions`。
 - 本地 mock 刘海审批卡片可以展示三个审批选项。
 - `CodexStatusRadarCore` 可以解码已观测到的 approval decision，并映射成隐私安全的刘海 action。
+- macOS app shell 已经具备菜单栏入口、顶部状态灯窗口和本地审批 demo 弹窗。
 
 ## 仓库结构
 
@@ -56,6 +57,18 @@ assets/                  产品图片、截图和设计资产。
 
 ```bash
 swift test --disable-sandbox
+```
+
+构建 macOS app：
+
+```bash
+swift build --disable-sandbox --product CodexStatusRadarApp
+```
+
+打开本地刘海审批 demo：
+
+```bash
+scripts/run-macos-app.sh --demo-approval
 ```
 
 打开本地 mock：

@@ -1,13 +1,17 @@
-import SwiftUI
+import AppKit
 
 @main
-struct CodexStatusRadarApp: App {
-    @NSApplicationDelegateAdaptor(AppDelegate.self) private var appDelegate
+enum CodexStatusRadarApp {
+    @MainActor
+    static func main() {
+        let application = NSApplication.shared
+        let delegate = AppDelegate()
+        application.delegate = delegate
+        application.finishLaunching()
+        delegate.start()
 
-    var body: some Scene {
-        Settings {
-            Text("Codex Status Radar")
-                .frame(width: 320, height: 160)
+        withExtendedLifetime(delegate) {
+            application.run()
         }
     }
 }
