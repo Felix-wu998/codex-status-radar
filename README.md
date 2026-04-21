@@ -46,6 +46,11 @@ Developer-side telemetry is allowed only as anonymous product-level events, must
 
 The current reproducible spike is in `prototypes/app-server-approval`.
 
+Read before continuing implementation:
+
+- `docs/architecture/technical-architecture.md`
+- `docs/superpowers/plans/2026-04-21-macos-mvp.md`
+
 Run core tests:
 
 ```bash
