@@ -1,11 +1,11 @@
 # Codex Status Radar
 
-Codex Status Radar 是一个本地优先的 macOS 工具，面向高频使用 Codex 的用户。它的核心产品形态是 Mac 刘海交互和状态灯，用来提示 Codex 当前是运行中、等待输入、等待审批、已完成还是异常。
+Codex Status Radar 是一个本地优先的 macOS 工具，面向高频使用 Codex 的用户。它的核心产品形态是 Mac 灵动岛交互和状态灯，用来提示 Codex 当前是运行中、等待输入、等待审批、已完成还是异常。
 
 第一阶段聚焦两件事：
 
 - 通过 Codex app-server 精准检测 `waiting-approval`。
-- 在刘海区域展示符合 Codex 原生 decision model 的审批交互。
+- 在灵动岛区域展示符合 Codex 原生 decision model 的审批交互。
 
 ## 当前状态
 
@@ -18,9 +18,9 @@ Codex Status Radar 是一个本地优先的 macOS 工具，面向高频使用 Co
 - 发起审批请求的 app-server 连接会收到 `item/commandExecution/requestApproval`。
 - approval request 中包含 `availableDecisions`，但该请求体不保证广播给被动订阅的连接。
 - 被动订阅连接可以通过 `thread/loaded/list` + `thread/resume` 观察到已加载线程的 `waitingOnApproval` 状态。
-- 本地 mock 刘海审批卡片可以展示三个审批选项。
-- `CodexStatusRadarCore` 可以解码已观测到的 approval decision，并映射成隐私安全的刘海 action。
-- macOS app shell 已经具备菜单栏入口、顶部状态灯窗口、本地审批 demo 弹窗和真实 waiting-approval 刘海提醒。
+- 本地 mock 灵动岛审批卡片可以展示三个审批选项。
+- `CodexStatusRadarCore` 可以解码已观测到的 approval decision，并映射成隐私安全的灵动岛 action。
+- macOS app shell 已经具备菜单栏入口、顶部状态灯窗口、本地审批 demo 弹窗和真实 waiting-approval 灵动岛提醒。
 
 ## 仓库结构
 
@@ -66,7 +66,7 @@ swift test --disable-sandbox
 swift build --disable-sandbox --product CodexStatusRadarApp
 ```
 
-打开本地刘海审批 demo：
+打开本地灵动岛审批 demo：
 
 ```bash
 scripts/run-macos-app.sh --demo-approval

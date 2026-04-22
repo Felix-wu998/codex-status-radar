@@ -1,11 +1,11 @@
 # app-server 审批原型
 
-这个原型用于验证 Codex app-server 审批链路，并提供一个本地刘海审批 mock。
+这个原型用于验证 Codex app-server 审批链路，并提供一个本地灵动岛审批 mock。
 
 ## 文件
 
 - `app-server-approval-spike.mjs`：连接 Codex app-server，创建线程，触发命令审批请求，捕获 `waitingOnApproval`，并拒绝测试命令。
-- `notch-approval-mock.html`：本地 HTML 刘海审批弹窗 mock。
+- `notch-approval-mock.html`：本地 HTML 灵动岛审批弹窗 mock。
 
 ## 运行
 

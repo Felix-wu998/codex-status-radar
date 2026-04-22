@@ -18,7 +18,7 @@
 
 本产品是 macOS 本地工具，核心围绕：
 
-- Mac 刘海交互。
+- Mac 灵动岛交互。
 - 状态灯。
 - 精准 Codex `waiting-approval` 检测。
 - Codex 原生审批选项。

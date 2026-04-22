@@ -17,7 +17,7 @@
 - 发起审批请求的连接可以收到 `item/commandExecution/requestApproval` 和 `availableDecisions`。
 - 被动订阅连接通过 `thread/loaded/list` + `thread/resume` 可以看到已加载线程的 `thread/status/changed` 和 `waitingOnApproval`。
 - 当前实测中，审批请求体不保证广播给被动订阅连接。因此 MVP 要把能力拆开：
-  - 通过 `waitingOnApproval` 做精准刘海提醒。
+  - 通过 `waitingOnApproval` 做精准灵动岛提醒。
   - 只有实际收到 `item/commandExecution/requestApproval` 时，才展示可点击的原生审批按钮。
 
 ## 可复现文件
