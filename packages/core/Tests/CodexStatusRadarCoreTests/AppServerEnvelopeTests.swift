@@ -23,6 +23,30 @@ final class AppServerEnvelopeTests: XCTestCase {
         XCTAssertEqual(envelope.params.activeFlags, ["waitingOnApproval"])
     }
 
+    func testDecodesObservedNestedWaitingOnApprovalStatusChange() throws {
+        let data = Data(
+            """
+            {
+              "method": "thread/status/changed",
+              "params": {
+                "threadId": "thread-1",
+                "status": {
+                  "state": "running",
+                  "activeFlags": ["waitingOnApproval"]
+                }
+              }
+            }
+            """.utf8
+        )
+
+        let envelope = try JSONDecoder().decode(AppServerEnvelope.self, from: data)
+
+        XCTAssertEqual(envelope.method, "thread/status/changed")
+        XCTAssertEqual(envelope.params.threadId, "thread-1")
+        XCTAssertEqual(envelope.params.status, "running")
+        XCTAssertEqual(envelope.params.activeFlags, ["waitingOnApproval"])
+    }
+
     func testDecodesCommandApprovalRequestWithAvailableDecisions() throws {
         let data = Data(
             """
