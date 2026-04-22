@@ -5,6 +5,7 @@
 ## 文件
 
 - `app-server-approval-spike.mjs`：连接 Codex app-server，创建线程，触发命令审批请求，捕获 `waitingOnApproval`，并拒绝测试命令。
+- `two-client-routing-spike.mjs`：同时连接 actor 和 observer 两个客户端，验证审批请求是否会广播给旁路 observer。
 - `notch-approval-mock.html`：本地 HTML 灵动岛审批弹窗 mock。
 
 ## 运行
@@ -23,6 +24,12 @@ CODEX_HOME=/tmp/codex-status-radar-home codex app-server --listen ws://127.0.0.1
 
 ```bash
 CODEX_APP_SERVER_PORT=8794 node prototypes/app-server-approval/app-server-approval-spike.mjs
+```
+
+验证双客户端路由：
+
+```bash
+CODEX_SPIKE_CWD=/tmp scripts/run-two-client-approval-routing-spike.sh
 ```
 
 打开 mock：

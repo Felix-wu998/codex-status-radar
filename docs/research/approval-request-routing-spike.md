@@ -8,6 +8,8 @@
 
 但同一轮验证中，`item/commandExecution/requestApproval` 服务端请求和三项 `availableDecisions` 只发送给启动 `turn/start` 的客户端。旁路 observer 通过 `thread/loaded/list` 和 `thread/resume` 订阅线程后，没有收到该请求。
 
+2026-04-22 追加双客户端验证：同一个 app-server 同时连接 actor 和 observer。actor 负责 `thread/start` / `turn/start`，observer 只作为旁路连接存在。结果是 observer 收到了 `waitingOnApproval`，但没有收到 `item/commandExecution/requestApproval`；actor 收到了完整审批请求和三项 `availableDecisions`。这进一步证明：等待状态是广播级事件，审批请求本体是发起 turn 的客户端请求。
+
 这意味着：在不改变连接模式前，产品不能承诺“真实 Codex 审批三按钮一定能在灵动岛直接点击”。当前可靠 MVP 是“精准等待审批提醒”；直接审批需要继续寻找审批请求路由入口，或让本产品成为 turn 的发起/承载客户端。
 
 ## 已验证现象
@@ -32,6 +34,45 @@ macOS app 日志收到：
 macOS app 日志没有收到：
 
 - `approval request received`。
+
+## 双客户端路由验证
+
+验证命令：
+
+```bash
+CODEX_SPIKE_CWD=/tmp CODEX_SPIKE_APPROVAL_RESPONSE_DELAY_MS=3000 scripts/run-two-client-approval-routing-spike.sh
+```
+
+关键输出：
+
+```text
+observer SAW_WAITING_ON_APPROVAL
+actor SAW_WAITING_ON_APPROVAL
+actor APPROVAL_CAPTURED
+```
+
+最终摘要：
+
+```json
+{
+  "result": "pass",
+  "expectedRouting": "actor_only",
+  "observer": {
+    "sawWaitingOnApproval": true,
+    "sawApprovalRequest": false
+  },
+  "actor": {
+    "sawWaitingOnApproval": true,
+    "sawApprovalRequest": true
+  }
+}
+```
+
+补充现象：
+
+- 刚 `thread/start` 后，observer 对同一个新线程执行 `thread/resume` 会返回 `no rollout found for thread id ...`。
+- 即使 resume 失败，observer 仍然能收到 `waitingOnApproval`，说明该状态不是依赖 resume 的私有事件。
+- observer 没有收到审批请求本体，说明当前直接审批不能依赖旁路监听。
 
 ## 失败实验
 
