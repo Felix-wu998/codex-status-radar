@@ -15,13 +15,14 @@ public enum CodexEventReducer {
                 pendingApproval: state.pendingApproval
             )
         case "item/commandExecution/requestApproval":
+            let projectName = PrivacyRedactor.projectName(fromPath: envelope.params.cwd)
             return ProjectStatus(
-                projectName: state.projectName,
+                projectName: projectName,
                 threadId: envelope.params.threadId ?? state.threadId,
                 phase: .waitingForApproval,
                 pendingApproval: ApprovalRequestViewModel(
-                    projectName: state.projectName,
-                    reason: nil,
+                    projectName: projectName,
+                    reason: envelope.params.reason,
                     commandPreview: nil,
                     decisions: envelope.params.availableDecisions
                 )

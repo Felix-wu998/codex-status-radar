@@ -51,6 +51,7 @@ final class AppServerEnvelopeTests: XCTestCase {
         let data = Data(
             """
             {
+              "id": 42,
               "method": "item/commandExecution/requestApproval",
               "params": {
                 "threadId": "thread-1",
@@ -66,8 +67,28 @@ final class AppServerEnvelopeTests: XCTestCase {
 
         let envelope = try JSONDecoder().decode(AppServerEnvelope.self, from: data)
 
+        XCTAssertEqual(envelope.id, .integer(42))
         XCTAssertEqual(envelope.method, "item/commandExecution/requestApproval")
         XCTAssertEqual(envelope.params.command, "touch /tmp/example.txt")
         XCTAssertEqual(envelope.params.availableDecisions, [.accept, .cancel])
+    }
+
+    func testDecodesStringRequestId() throws {
+        let data = Data(
+            """
+            {
+              "id": "approval-1",
+              "method": "item/commandExecution/requestApproval",
+              "params": {
+                "threadId": "thread-1",
+                "availableDecisions": ["decline"]
+              }
+            }
+            """.utf8
+        )
+
+        let envelope = try JSONDecoder().decode(AppServerEnvelope.self, from: data)
+
+        XCTAssertEqual(envelope.id, .string("approval-1"))
     }
 }
