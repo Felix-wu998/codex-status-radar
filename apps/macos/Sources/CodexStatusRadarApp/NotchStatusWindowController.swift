@@ -9,7 +9,7 @@ final class NotchStatusWindowController {
     init(isDemoMode: Bool = false) {
         window = NotchPanel(
             contentRect: NSRect(x: 0, y: 0, width: 72, height: 30),
-            styleMask: [.titled, .fullSizeContentView],
+            styleMask: [.borderless],
             backing: .buffered,
             defer: false
         )
@@ -20,18 +20,15 @@ final class NotchStatusWindowController {
         window.ignoresMouseEvents = false
         window.isOpaque = false
         window.isReleasedWhenClosed = false
-        window.title = ""
-        window.titleVisibility = .hidden
-        window.titlebarAppearsTransparent = true
         window.level = isDemoMode ? .screenSaver : .statusBar
     }
 
     func showStatus(_ phase: CodexPhase) {
         let statusView = NotchStatusView(phase: phase)
-            .frame(width: 92, height: 34)
+            .frame(width: NotchLayoutMetrics.statusSize.width, height: NotchLayoutMetrics.statusSize.height)
             .background(.black.opacity(0.001))
         window.contentView = NSHostingView(rootView: statusView)
-        window.setContentSize(NSSize(width: 92, height: 34))
+        window.setContentSize(NotchLayoutMetrics.statusSize)
         show()
     }
 
@@ -44,7 +41,7 @@ final class NotchStatusWindowController {
             onSelect: onSelect
         )
         window.contentView = NSHostingView(rootView: approvalView)
-        window.setContentSize(NSSize(width: 380, height: 150))
+        window.setContentSize(NotchLayoutMetrics.approvalSize)
         show()
     }
 

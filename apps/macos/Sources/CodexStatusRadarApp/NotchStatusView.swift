@@ -5,21 +5,30 @@ struct NotchStatusView: View {
     let phase: CodexPhase
 
     var body: some View {
-        HStack(spacing: 6) {
-            Circle()
-                .fill(color)
-                .frame(width: 12, height: 12)
-                .shadow(color: color.opacity(0.75), radius: 6)
+        HStack(spacing: 8) {
+            ZStack {
+                Circle()
+                    .fill(color.opacity(0.22))
+                    .frame(width: 18, height: 18)
+                Circle()
+                    .fill(color)
+                    .frame(width: 8, height: 8)
+                    .shadow(color: color.opacity(0.9), radius: 5)
+            }
 
             Text(shortLabel)
-                .font(.caption2)
-                .foregroundStyle(.white)
+                .font(.system(size: 12, weight: .semibold))
+                .foregroundStyle(.white.opacity(0.92))
                 .lineLimit(1)
         }
-        .padding(.horizontal, 10)
-        .padding(.vertical, 6)
-        .background(.black.opacity(0.68))
+        .padding(.horizontal, 13)
+        .frame(width: NotchLayoutMetrics.statusSize.width, height: NotchLayoutMetrics.statusSize.height)
+        .background(.black.opacity(0.88))
         .clipShape(Capsule())
+        .overlay {
+            Capsule()
+                .stroke(.white.opacity(0.08), lineWidth: 1)
+        }
         .accessibilityLabel(accessibilityLabel)
     }
 
