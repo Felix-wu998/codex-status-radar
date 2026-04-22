@@ -6,7 +6,7 @@ public struct AppServerEnvelope: Decodable, Equatable, Sendable {
     public let params: AppServerParams
 }
 
-public enum AppServerRequestId: Codable, Equatable, Sendable {
+public enum AppServerRequestId: Codable, Equatable, Hashable, Sendable {
     case integer(Int)
     case string(String)
 
@@ -89,7 +89,9 @@ public struct AppServerParams: Decodable, Equatable, Sendable {
         self.threadId = try container.decodeIfPresent(String.self, forKey: .threadId)
         self.turnId = try container.decodeIfPresent(String.self, forKey: .turnId)
         self.itemId = try container.decodeIfPresent(String.self, forKey: .itemId)
-        self.status = (try? container.decodeIfPresent(String.self, forKey: .status)) ?? nestedStatus?.state
+        self.status = (try? container.decodeIfPresent(String.self, forKey: .status))
+            ?? nestedStatus?.state
+            ?? nestedStatus?.type
         self.activeFlags = try container.decodeIfPresent([String].self, forKey: .activeFlags)
             ?? nestedStatus?.activeFlags
         self.command = try container.decodeIfPresent(String.self, forKey: .command)
@@ -103,6 +105,7 @@ public struct AppServerParams: Decodable, Equatable, Sendable {
 }
 
 private struct AppServerStatusPayload: Decodable {
+    let type: String?
     let state: String?
     let activeFlags: [String]?
 }

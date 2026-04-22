@@ -1,6 +1,7 @@
 const port = process.env.CODEX_APP_SERVER_PORT || "8794";
 const cwd = process.env.CODEX_SPIKE_CWD || "/Users/wuzhentian/Project/临时白板";
 const wsUrl = `ws://127.0.0.1:${port}`;
+const approvalResponseDelayMs = Number(process.env.CODEX_SPIKE_APPROVAL_RESPONSE_DELAY_MS || "0");
 
 let nextId = 1;
 let threadId = null;
@@ -85,7 +86,9 @@ ws.onopen = async () => {
       input: [
         {
           type: "text",
-          text: "请只执行一个 shell 命令：`touch /tmp/codex-status-radar-approval-test.txt`。不要做其他事情。",
+          text:
+            "请只执行一个 shell 命令：`touch /tmp/codex-status-radar-approval-test.txt`。" +
+            "如果只读沙箱或权限策略阻止写入，请必须请求审批后重试同一个命令；不要做其他事情。",
           text_elements: [],
         },
       ],
@@ -150,7 +153,9 @@ ws.onmessage = (event) => {
     console.log("APPROVAL_CAPTURED", JSON.stringify(capturedApproval, null, 2));
 
     // The spike declines the test command so it does not create the /tmp test file.
-    respond(message.id, { decision: "decline" });
+    setTimeout(() => {
+      respond(message.id, { decision: "decline" });
+    }, approvalResponseDelayMs);
   }
 
   if (message.method === "turn/completed") {

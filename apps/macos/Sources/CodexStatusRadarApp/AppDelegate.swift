@@ -5,7 +5,7 @@ import CodexStatusRadarCore
 final class AppDelegate: NSObject, NSApplicationDelegate {
     private var menuBarController: MenuBarController?
     private var notchStatusWindowController: NotchStatusWindowController?
-    private var appServerClient: CodexAppServerClient?
+    private var appServerConnection: CodexAppServerConnectionCoordinator?
     private var projectStatus = ProjectStatus.empty(projectName: "Codex")
     private var currentApprovalRequestId: AppServerRequestId?
     private var isDemoMode: Bool {
@@ -22,6 +22,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
             return
         }
 
+        debugLog("app start")
         NSApp.setActivationPolicy(.accessory)
         notchStatusWindowController = NotchStatusWindowController(isDemoMode: isDemoMode)
 
@@ -48,7 +49,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     }
 
     func applicationWillTerminate(_ notification: Notification) {
-        appServerClient?.disconnect()
+        appServerConnection?.stop()
     }
 
     private func showApprovalFixture() {
@@ -76,7 +77,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     }
 
     private func connectAppServer() {
-        let client = CodexAppServerClient(
+        let connection = CodexAppServerConnectionCoordinator(
             onEvent: { [weak self] envelope in
                 self?.handleAppServerEvent(envelope)
             },
@@ -91,15 +92,19 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
                 self?.notchStatusWindowController?.showStatus(.disconnected)
             }
         )
-        appServerClient = client
-        client.connect()
+        appServerConnection = connection
+        connection.start()
     }
 
     private func handleAppServerEvent(_ envelope: AppServerEnvelope) {
+        debugLog("event \(envelope.method)")
         projectStatus = CodexEventReducer.reduce(projectStatus, envelope: envelope)
 
         if envelope.method == "item/commandExecution/requestApproval" {
             currentApprovalRequestId = envelope.id
+            debugLog("approval request received")
+        } else if projectStatus.phase == .waitingForApproval {
+            debugLog("waiting approval observed")
         }
 
         render(projectStatus)
@@ -112,7 +117,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
                     return
                 }
                 if let requestId = currentApprovalRequestId {
-                    appServerClient?.sendApprovalResponse(
+                    appServerConnection?.sendApprovalResponse(
                         requestId: requestId,
                         decision: action.decision
                     )
@@ -129,5 +134,13 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         } else {
             notchStatusWindowController?.showStatus(status.phase)
         }
+    }
+
+    private func debugLog(_ message: String) {
+        guard ProcessInfo.processInfo.environment["CODEX_STATUS_RADAR_DEBUG_LOG"] == "1" else {
+            return
+        }
+        print("[codex-status-radar] \(message)")
+        fflush(stdout)
     }
 }

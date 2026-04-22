@@ -1,5 +1,5 @@
-# Scripts
+# 脚本
 
-Repeatable development scripts will live here.
+这里存放可重复执行的本地开发脚本。
 
-Do not store secrets in scripts. Use environment variables or local ignored config files for machine-specific values.
+不要在脚本中写入密钥。机器相关配置应使用环境变量，或放在本地忽略文件中。

@@ -15,11 +15,12 @@ Codex Status Radar 是一个本地优先的 macOS 工具，面向高频使用 Co
 
 - Codex app-server 会发出 `thread/status/changed`。
 - `activeFlags` 中可以出现 `waitingOnApproval`。
-- Codex app-server 会发出 `item/commandExecution/requestApproval`。
-- approval request 中包含 `availableDecisions`。
+- 发起审批请求的 app-server 连接会收到 `item/commandExecution/requestApproval`。
+- approval request 中包含 `availableDecisions`，但该请求体不保证广播给被动订阅的连接。
+- 被动订阅连接可以通过 `thread/loaded/list` + `thread/resume` 观察到已加载线程的 `waitingOnApproval` 状态。
 - 本地 mock 刘海审批卡片可以展示三个审批选项。
 - `CodexStatusRadarCore` 可以解码已观测到的 approval decision，并映射成隐私安全的刘海 action。
-- macOS app shell 已经具备菜单栏入口、顶部状态灯窗口和本地审批 demo 弹窗。
+- macOS app shell 已经具备菜单栏入口、顶部状态灯窗口、本地审批 demo 弹窗和真实 waiting-approval 刘海提醒。
 
 ## 仓库结构
 
@@ -84,6 +85,12 @@ open prototypes/app-server-approval/notch-approval-mock.html
 
 ```bash
 CODEX_APP_SERVER_PORT=8794 node prototypes/app-server-approval/app-server-approval-spike.mjs
+```
+
+运行真实 app-server + macOS app 的 waiting-approval 烟测：
+
+```bash
+scripts/run-live-approval-smoke.sh
 ```
 
 完整验证说明见：

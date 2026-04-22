@@ -1,32 +1,33 @@
 # PRD v0.1
 
-## Product
+## 产品定位
 
-Codex Status Radar is a macOS local utility for Codex-heavy workflows.
+Codex Status Radar 是一个面向高频 Codex 工作流的 macOS 本地工具。
 
-## Core Experience
+## 核心体验
 
-- Mac notch status light.
-- Precise `waiting-approval` detection.
-- Notch popup for Codex approval requests.
-- Codex-native approval decisions rendered from `availableDecisions`.
-- Project/repository-level summaries.
-- Time-aware closing text after task completion.
+- Mac 刘海状态灯。
+- 精准识别 `waiting-approval`。
+- 在刘海区域弹出 Codex 审批提醒。
+- 收到 `availableDecisions` 时，按 Codex 原生 decision 渲染审批按钮。
+- 展示当前推进和已完成任务的项目 / 仓库级总结，不展示具体文件清单。
+- 任务完成后给出总结和结合当前系统时间的结语。
 
-## First Slice
+## 第一阶段切片
 
-The first implementation slice is not a full dashboard. It must prove:
+第一阶段不是完整仪表盘，必须证明：
 
-1. Codex app-server emits `waitingOnApproval` in real time.
-2. Approval requests can be captured.
-3. Approval decisions can be rendered safely.
-4. The notch UI can show the approval request without showing sensitive command details by default.
+1. Codex app-server 可以实时发出 `waitingOnApproval`。
+2. 被动订阅连接可以通过 `thread/resume` 观察到已加载线程的等待审批状态。
+3. 发起审批请求的连接可以捕获审批请求和 `availableDecisions`。
+4. 审批 decision 可以安全渲染，默认不展示敏感命令正文。
+5. 刘海 UI 可以在没有审批请求体时弹出提醒，在有审批请求体时展示原生审批按钮。
 
-## Non-Goals For First Slice
+## 第一阶段不做
 
-- Full Codex client replacement.
-- Team collaboration.
-- Cloud sync.
-- Background auto-approval rule engine.
-- File-level change list.
-- Uploading code, command bodies, diffs, filenames, complete paths, or conversation content.
+- 完整替代 Codex 客户端。
+- 团队协作。
+- 云同步。
+- 后台自动审批规则引擎。
+- 文件级变更清单。
+- 上传代码、命令正文、diff、文件名、完整路径或对话内容。

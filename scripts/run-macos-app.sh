@@ -4,10 +4,21 @@ set -euo pipefail
 ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 APP_NAME="CodexStatusRadarApp"
 DEMO_MODE=0
+FOREGROUND_MODE=0
+APP_ARGS=()
 for arg in "$@"; do
-  if [[ "$arg" == "--demo-approval" ]]; then
-    DEMO_MODE=1
-  fi
+  case "$arg" in
+    --demo-approval)
+      DEMO_MODE=1
+      APP_ARGS+=("$arg")
+      ;;
+    --foreground)
+      FOREGROUND_MODE=1
+      ;;
+    *)
+      APP_ARGS+=("$arg")
+      ;;
+  esac
 done
 
 if [[ "$DEMO_MODE" == "1" ]]; then
@@ -72,9 +83,13 @@ fi
 
 /usr/bin/codesign --force --sign - "$APP_DIR" >/dev/null 2>&1 || true
 
-if ! open -n "$APP_DIR" --args "$@"; then
+if [[ "$FOREGROUND_MODE" == "1" ]]; then
+  exec "$MACOS_DIR/$APP_NAME" ${APP_ARGS[@]+"${APP_ARGS[@]}"}
+fi
+
+if ! open -n "$APP_DIR" --args ${APP_ARGS[@]+"${APP_ARGS[@]}"}; then
   echo "无法通过 open 启动 macOS app，改用直接执行模式。" >&2
-  exec "$MACOS_DIR/$APP_NAME" "$@"
+  exec "$MACOS_DIR/$APP_NAME" ${APP_ARGS[@]+"${APP_ARGS[@]}"}
 fi
 
 echo "已启动：$APP_DIR"

@@ -1,15 +1,15 @@
-# App-Server Approval Prototype
+# app-server 审批原型
 
-This prototype verifies the Codex app-server approval flow and provides a local notch approval mock.
+这个原型用于验证 Codex app-server 审批链路，并提供一个本地刘海审批 mock。
 
-## Files
+## 文件
 
-- `app-server-approval-spike.mjs` - connects to Codex app-server, starts a thread, triggers a command approval request, captures `waitingOnApproval`, and declines the test command.
-- `notch-approval-mock.html` - local HTML mock for the notch approval popup.
+- `app-server-approval-spike.mjs`：连接 Codex app-server，创建线程，触发命令审批请求，捕获 `waitingOnApproval`，并拒绝测试命令。
+- `notch-approval-mock.html`：本地 HTML 刘海审批弹窗 mock。
 
-## Run
+## 运行
 
-From repository root:
+在仓库根目录执行：
 
 ```bash
 rm -rf /tmp/codex-status-radar-home
@@ -19,18 +19,18 @@ cp ~/.codex/config.toml /tmp/codex-status-radar-home/config.toml
 CODEX_HOME=/tmp/codex-status-radar-home codex app-server --listen ws://127.0.0.1:8794
 ```
 
-In another terminal:
+另开一个终端执行：
 
 ```bash
 CODEX_APP_SERVER_PORT=8794 node prototypes/app-server-approval/app-server-approval-spike.mjs
 ```
 
-Open the mock:
+打开 mock：
 
 ```bash
 open prototypes/app-server-approval/notch-approval-mock.html
 ```
 
-## Safety
+## 安全边界
 
-The script declines the captured approval request. It should not create `/tmp/codex-status-radar-approval-test.txt`.
+脚本会拒绝捕获到的审批请求，正常情况下不应创建 `/tmp/codex-status-radar-approval-test.txt`。

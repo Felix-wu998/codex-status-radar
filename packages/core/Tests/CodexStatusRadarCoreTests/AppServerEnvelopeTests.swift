@@ -47,6 +47,27 @@ final class AppServerEnvelopeTests: XCTestCase {
         XCTAssertEqual(envelope.params.activeFlags, ["waitingOnApproval"])
     }
 
+    func testDecodesObservedStatusTypeField() throws {
+        let data = Data(
+            """
+            {
+              "method": "thread/status/changed",
+              "params": {
+                "threadId": "thread-1",
+                "status": {
+                  "type": "idle"
+                }
+              }
+            }
+            """.utf8
+        )
+
+        let envelope = try JSONDecoder().decode(AppServerEnvelope.self, from: data)
+
+        XCTAssertEqual(envelope.params.status, "idle")
+        XCTAssertNil(envelope.params.activeFlags)
+    }
+
     func testDecodesCommandApprovalRequestWithAvailableDecisions() throws {
         let data = Data(
             """
