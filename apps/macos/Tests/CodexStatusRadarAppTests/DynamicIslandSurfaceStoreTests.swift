@@ -28,6 +28,24 @@ final class DynamicIslandSurfaceStoreTests: XCTestCase {
         XCTAssertTrue(store.isInteractive)
     }
 
+    func testShowApprovalWithoutActionsUsesWaitingReminderMode() {
+        let store = DynamicIslandSurfaceStore()
+        let approval = ApprovalRequestViewModel(
+            projectName: "codex-status-radar",
+            reason: "Codex 正在等待审批",
+            commandPreview: nil,
+            decisions: nil
+        )
+
+        store.showApproval(approval) { _ in
+            XCTFail("没有可选审批项时不应该触发本地选择回调")
+        }
+
+        XCTAssertEqual(store.mode, .waitingReminder(approval))
+        XCTAssertFalse(store.isInteractive)
+        XCTAssertTrue(store.currentApprovalActions.isEmpty)
+    }
+
     func testSelectingApprovalActionReturnsToWorkingCollapsedMode() throws {
         let store = DynamicIslandSurfaceStore()
         let approval = ApprovalRequestViewModel(

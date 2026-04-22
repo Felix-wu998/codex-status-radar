@@ -3,6 +3,7 @@ import SwiftUI
 
 enum DynamicIslandSurfaceMode: Equatable {
     case collapsed(CodexPhase)
+    case waitingReminder(ApprovalRequestViewModel)
     case approval(ApprovalRequestViewModel)
 }
 
@@ -12,10 +13,12 @@ final class DynamicIslandSurfaceStore: ObservableObject {
     private var onApprovalSelect: ((ApprovalAction) -> Void)?
 
     var isInteractive: Bool {
-        if case .approval = mode {
-            return true
+        switch mode {
+        case let .approval(viewModel):
+            return !viewModel.actions.isEmpty
+        case .collapsed, .waitingReminder:
+            return false
         }
-        return false
     }
 
     var currentApprovalActions: [ApprovalAction] {
@@ -34,11 +37,19 @@ final class DynamicIslandSurfaceStore: ObservableObject {
         _ viewModel: ApprovalRequestViewModel,
         onSelect: @escaping (ApprovalAction) -> Void
     ) {
-        mode = .approval(viewModel)
-        onApprovalSelect = onSelect
+        if viewModel.actions.isEmpty {
+            mode = .waitingReminder(viewModel)
+            onApprovalSelect = nil
+        } else {
+            mode = .approval(viewModel)
+            onApprovalSelect = onSelect
+        }
     }
 
     func selectApprovalAction(_ action: ApprovalAction) {
+        guard case .approval = mode else {
+            return
+        }
         onApprovalSelect?(action)
         showStatus(.working)
     }
@@ -50,14 +61,23 @@ struct DynamicIslandSurfaceView: View {
     @State private var hasAppeared = false
 
     private var isExpanded: Bool {
-        if case .approval = store.mode {
+        switch store.mode {
+        case .approval, .waitingReminder:
             return true
+        case .collapsed:
+            return false
         }
-        return false
     }
 
     private var surfaceSize: CGSize {
-        isExpanded ? NotchLayoutMetrics.expandedApprovalSize : NotchLayoutMetrics.collapsedSize
+        switch store.mode {
+        case .collapsed:
+            return NotchLayoutMetrics.collapsedSize
+        case .waitingReminder:
+            return NotchLayoutMetrics.waitingReminderSize
+        case .approval:
+            return NotchLayoutMetrics.expandedApprovalSize
+        }
     }
 
     var body: some View {
@@ -99,10 +119,19 @@ struct DynamicIslandSurfaceView: View {
             header
                 .frame(height: NotchLayoutMetrics.closedHeaderHeight)
 
-            if case let .approval(viewModel) = store.mode {
+            if let viewModel = approvalViewModel {
                 approvalBody(viewModel)
                     .transition(.opacity.combined(with: .move(edge: .top)))
             }
+        }
+    }
+
+    private var approvalViewModel: ApprovalRequestViewModel? {
+        switch store.mode {
+        case .collapsed:
+            return nil
+        case let .waitingReminder(viewModel), let .approval(viewModel):
+            return viewModel
         }
     }
 
@@ -141,6 +170,8 @@ struct DynamicIslandSurfaceView: View {
         switch store.mode {
         case let .collapsed(phase):
             return shortLabel(for: phase)
+        case let .waitingReminder(viewModel):
+            return viewModel.projectName
         case let .approval(viewModel):
             return viewModel.projectName
         }
@@ -150,17 +181,17 @@ struct DynamicIslandSurfaceView: View {
         switch store.mode {
         case let .collapsed(phase):
             return color(for: phase)
-        case .approval:
+        case .waitingReminder, .approval:
             return .orange
         }
     }
 
     private func approvalBody(_ viewModel: ApprovalRequestViewModel) -> some View {
-        VStack(alignment: .leading, spacing: 12) {
+        VStack(alignment: .leading, spacing: viewModel.actions.isEmpty ? 8 : 12) {
             Text(viewModel.reason ?? "Codex 请求确认本次操作。")
                 .font(.system(size: 12, weight: .medium))
                 .foregroundStyle(.white.opacity(0.66))
-                .lineLimit(2)
+                .lineLimit(viewModel.actions.isEmpty ? 1 : 2)
                 .fixedSize(horizontal: false, vertical: true)
 
             if viewModel.actions.isEmpty {
@@ -177,7 +208,7 @@ struct DynamicIslandSurfaceView: View {
         }
         .padding(.horizontal, 18)
         .padding(.top, 8)
-        .padding(.bottom, 16)
+        .padding(.bottom, viewModel.actions.isEmpty ? 12 : 16)
         .frame(maxWidth: .infinity, alignment: .leading)
     }
 
