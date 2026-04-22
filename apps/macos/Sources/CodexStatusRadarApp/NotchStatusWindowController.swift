@@ -5,11 +5,17 @@ import SwiftUI
 @MainActor
 final class NotchStatusWindowController {
     private let window: NotchPanel
+    private let store = DynamicIslandSurfaceStore()
 
     init(isDemoMode: Bool = false) {
         window = NotchPanel(
-            contentRect: NSRect(x: 0, y: 0, width: 72, height: 30),
-            styleMask: [.borderless],
+            contentRect: NSRect(
+                x: 0,
+                y: 0,
+                width: NotchLayoutMetrics.windowSize.width,
+                height: NotchLayoutMetrics.windowSize.height
+            ),
+            styleMask: [.borderless, .nonactivatingPanel],
             backing: .buffered,
             defer: false
         )
@@ -21,14 +27,12 @@ final class NotchStatusWindowController {
         window.isOpaque = false
         window.isReleasedWhenClosed = false
         window.level = isDemoMode ? .screenSaver : .statusBar
+        window.contentView = NSHostingView(rootView: DynamicIslandSurfaceView(store: store))
     }
 
     func showStatus(_ phase: CodexPhase) {
-        let statusView = NotchStatusView(phase: phase)
-            .frame(width: NotchLayoutMetrics.statusSize.width, height: NotchLayoutMetrics.statusSize.height)
-            .background(.black.opacity(0.001))
-        window.contentView = NSHostingView(rootView: statusView)
-        window.setContentSize(NotchLayoutMetrics.statusSize)
+        store.showStatus(phase)
+        syncInteractivity()
         show()
     }
 
@@ -36,13 +40,14 @@ final class NotchStatusWindowController {
         _ viewModel: ApprovalRequestViewModel,
         onSelect: @escaping (ApprovalAction) -> Void
     ) {
-        let approvalView = ApprovalPopoverView(
-            viewModel: viewModel,
-            onSelect: onSelect
-        )
-        window.contentView = NSHostingView(rootView: approvalView)
-        window.setContentSize(NotchLayoutMetrics.approvalSize)
+        store.showApproval(viewModel, onSelect: onSelect)
+        syncInteractivity()
         show()
+    }
+
+    private func syncInteractivity() {
+        window.ignoresMouseEvents = !store.isInteractive
+        window.acceptsMouseMovedEvents = store.isInteractive
     }
 
     private func show() {
@@ -50,16 +55,15 @@ final class NotchStatusWindowController {
             return
         }
 
-        let screenFrame = screen.visibleFrame
+        let screenFrame = screen.frame
+        window.setContentSize(NotchLayoutMetrics.windowSize)
         window.setFrameOrigin(
             NSPoint(
                 x: screenFrame.midX - window.frame.width / 2,
-                y: screenFrame.maxY - window.frame.height - 8
+                y: screenFrame.maxY - window.frame.height
             )
         )
-        window.makeKeyAndOrderFront(nil)
         window.orderFrontRegardless()
-        NSApp.activate(ignoringOtherApps: true)
     }
 
     private func targetScreen() -> NSScreen? {

@@ -5,7 +5,7 @@ Codex Status Radar 是一个本地优先的 macOS 工具，面向高频使用 Co
 第一阶段聚焦两件事：
 
 - 通过 Codex app-server 精准检测 `waiting-approval`。
-- 在灵动岛区域展示符合 Codex 原生 decision model 的审批交互。
+- 在灵动岛 surface 内部展开符合 Codex 原生 decision model 的审批交互。
 
 ## 当前状态
 
@@ -18,9 +18,9 @@ Codex Status Radar 是一个本地优先的 macOS 工具，面向高频使用 Co
 - 发起审批请求的 app-server 连接会收到 `item/commandExecution/requestApproval`。
 - approval request 中包含 `availableDecisions`，但该请求体不保证广播给被动订阅的连接。
 - 被动订阅连接可以通过 `thread/loaded/list` + `thread/resume` 观察到已加载线程的 `waitingOnApproval` 状态。
-- 本地 mock 灵动岛审批卡片可以展示三个审批选项。
+- 本地灵动岛审批 surface 可以展示三个审批选项。
 - `CodexStatusRadarCore` 可以解码已观测到的 approval decision，并映射成隐私安全的灵动岛 action。
-- macOS app shell 已经具备菜单栏入口、顶部状态灯窗口、本地审批 demo 弹窗和真实 waiting-approval 灵动岛提醒。
+- macOS app shell 已经具备菜单栏入口、顶部状态灯窗口、本地审批 demo surface 和真实 waiting-approval 灵动岛提醒。
 
 ## 仓库结构
 

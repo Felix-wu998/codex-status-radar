@@ -1,6 +1,11 @@
 import CoreGraphics
 
 enum NotchLayoutMetrics {
-    static let statusSize = CGSize(width: 118, height: 36)
-    static let approvalSize = CGSize(width: 620, height: 108)
+    static let collapsedSize = CGSize(width: 128, height: 36)
+    static let expandedApprovalSize = CGSize(width: 620, height: 148)
+    static let windowSize = CGSize(width: 660, height: 174)
+    static let closedHeaderHeight = collapsedSize.height
+
+    static let statusSize = collapsedSize
+    static let approvalSize = expandedApprovalSize
 }

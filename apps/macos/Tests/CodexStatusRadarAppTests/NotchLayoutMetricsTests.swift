@@ -2,12 +2,17 @@ import XCTest
 @testable import CodexStatusRadarApp
 
 final class NotchLayoutMetricsTests: XCTestCase {
-    func testApprovalIslandIsWiderAndTallerThanStatusPill() {
-        XCTAssertGreaterThan(NotchLayoutMetrics.approvalSize.width, NotchLayoutMetrics.statusSize.width)
-        XCTAssertGreaterThan(NotchLayoutMetrics.approvalSize.height, NotchLayoutMetrics.statusSize.height)
+    func testWindowContainerCanHoldCollapsedAndApprovalSurfaces() {
+        XCTAssertGreaterThanOrEqual(NotchLayoutMetrics.windowSize.width, NotchLayoutMetrics.collapsedSize.width)
+        XCTAssertGreaterThanOrEqual(NotchLayoutMetrics.windowSize.height, NotchLayoutMetrics.collapsedSize.height)
+        XCTAssertGreaterThanOrEqual(NotchLayoutMetrics.windowSize.width, NotchLayoutMetrics.expandedApprovalSize.width)
+        XCTAssertGreaterThanOrEqual(NotchLayoutMetrics.windowSize.height, NotchLayoutMetrics.expandedApprovalSize.height)
     }
 
-    func testApprovalIslandKeepsCompactNotchLikeHeight() {
-        XCTAssertLessThanOrEqual(NotchLayoutMetrics.approvalSize.height, 118)
+    func testApprovalSurfaceExpandsFromCollapsedHeader() {
+        XCTAssertGreaterThan(NotchLayoutMetrics.expandedApprovalSize.width, NotchLayoutMetrics.collapsedSize.width)
+        XCTAssertGreaterThan(NotchLayoutMetrics.expandedApprovalSize.height, NotchLayoutMetrics.collapsedSize.height)
+        XCTAssertEqual(NotchLayoutMetrics.closedHeaderHeight, NotchLayoutMetrics.collapsedSize.height)
+        XCTAssertLessThanOrEqual(NotchLayoutMetrics.expandedApprovalSize.height, 156)
     }
 }
