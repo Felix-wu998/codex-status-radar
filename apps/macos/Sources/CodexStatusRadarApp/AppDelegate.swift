@@ -24,8 +24,8 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
 
         if isDemoMode {
             NSApp.setActivationPolicy(.regular)
-            NSApp.activate()
-            DispatchQueue.main.async { [weak self] in
+            DispatchQueue.main.asyncAfter(deadline: .now() + 0.2) { [weak self] in
+                NSApp.activate(ignoringOtherApps: true)
                 self?.showApprovalFixture()
             }
         } else {

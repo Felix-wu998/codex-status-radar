@@ -15,9 +15,11 @@ final class NotchStatusWindowController {
         )
         window.backgroundColor = .clear
         window.collectionBehavior = [.canJoinAllSpaces, .fullScreenAuxiliary]
+        window.hidesOnDeactivate = false
         window.hasShadow = false
         window.ignoresMouseEvents = false
         window.isOpaque = false
+        window.isReleasedWhenClosed = false
         window.title = ""
         window.titleVisibility = .hidden
         window.titlebarAppearsTransparent = true
@@ -47,7 +49,7 @@ final class NotchStatusWindowController {
     }
 
     private func show() {
-        guard let screen = NSScreen.main ?? NSScreen.screens.first else {
+        guard let screen = targetScreen() else {
             return
         }
 
@@ -60,6 +62,14 @@ final class NotchStatusWindowController {
         )
         window.makeKeyAndOrderFront(nil)
         window.orderFrontRegardless()
+        NSApp.activate(ignoringOtherApps: true)
+    }
+
+    private func targetScreen() -> NSScreen? {
+        let mouseLocation = NSEvent.mouseLocation
+        return NSScreen.screens.first { screen in
+            NSMouseInRect(mouseLocation, screen.frame, false)
+        } ?? NSScreen.main ?? NSScreen.screens.first
     }
 }
 

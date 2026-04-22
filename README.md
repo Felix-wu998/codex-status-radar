@@ -71,6 +71,9 @@ swift build --disable-sandbox --product CodexStatusRadarApp
 scripts/run-macos-app.sh --demo-approval
 ```
 
+脚本会生成独立的本地 demo bundle，并强制启动新实例。如果 macOS 的 `open`
+在特殊环境下无法打开临时 bundle，脚本会自动退回直接执行模式。
+
 打开本地 mock：
 
 ```bash
