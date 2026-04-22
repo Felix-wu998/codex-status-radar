@@ -74,6 +74,8 @@ packages/core
 - 把用户选择的原始 decision 发回 Codex app-server。
 - 提供隐私、遥测、连接设置。
 
+当前旁路 observer 连接已验证能稳定收到 `waitingOnApproval`，但真实审批三按钮 `requestApproval` 未证明会广播给旁路客户端。直接审批能力需要后续单独突破请求路由；在此之前，生产路径必须保留紧凑等待提醒作为可靠降级。
+
 app 层必须依赖 `CodexStatusRadarCore`，不要重复写协议解析逻辑。
 
 ## 数据流
